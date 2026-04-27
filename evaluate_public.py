@@ -5,7 +5,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from app.model import RelevantPriorModel
+from app.model import RelevantPriorModel, StudyComparison
 
 
 def load_eval_payload(path: Path) -> dict[str, Any]:
@@ -16,17 +16,26 @@ def load_eval_payload(path: Path) -> dict[str, Any]:
 def generate_predictions(payload: dict[str, Any]) -> dict[tuple[str, str], bool]:
     model = RelevantPriorModel()
     predictions: dict[tuple[str, str], bool] = {}
+    keys: list[tuple[str, str]] = []
+    comparisons: list[StudyComparison] = []
 
     for case in payload["cases"]:
         case_id = case["case_id"]
         current_study = case["current_study"]
+        current_study_date = date.fromisoformat(current_study["study_date"])
         for prior in case["prior_studies"]:
-            predictions[(case_id, prior["study_id"])] = model.predict_is_relevant(
-                current_study_description=current_study["study_description"],
-                current_study_date=date.fromisoformat(current_study["study_date"]),
-                prior_study_description=prior["study_description"],
-                prior_study_date=date.fromisoformat(prior["study_date"]),
+            keys.append((case_id, prior["study_id"]))
+            comparisons.append(
+                StudyComparison(
+                    current_study_description=current_study["study_description"],
+                    current_study_date=current_study_date,
+                    prior_study_description=prior["study_description"],
+                    prior_study_date=date.fromisoformat(prior["study_date"]),
+                )
             )
+
+    for key, prediction in zip(keys, model.predict_is_relevant_many(comparisons), strict=True):
+        predictions[key] = prediction
 
     return predictions
 
