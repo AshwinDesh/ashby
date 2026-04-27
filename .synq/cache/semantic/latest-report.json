@@ -1,0 +1,35 @@
+{
+  "mode": "analysis",
+  "status": "pass",
+  "architectureStatus": "pass",
+  "generatedAt": 1777249314221,
+  "summary": {
+    "fileCount": 0,
+    "changedFileCount": 0,
+    "conflictCount": 0,
+    "cycleCount": 0
+  },
+  "report": {
+    "changedFiles": [],
+    "cycles": [],
+    "importGraph": {}
+  },
+  "conflicts": [],
+  "conflictsByTask": {},
+  "taskStatuses": {},
+  "knowledgeTree": {
+    "exportKind": "repo_map",
+    "metadata": {
+      "folderCount": 0,
+      "taskCount": 0,
+      "moduleCount": 0,
+      "indexedFileCount": 0
+    },
+    "tree": []
+  },
+  "graph": {
+    "nodes": [],
+    "edges": [],
+    "generatedAt": 1777249314221
+  }
+}
