@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from app.model import RelevantPriorModel
 
@@ -54,13 +54,12 @@ def predict(payload: PredictionRequest) -> PredictionResponse:
                 prior_study_description=prior.study_description,
                 prior_study_date=prior.study_date,
             )
-            if is_relevant:
-                predictions.append(
-                    Prediction(
-                        case_id=case.case_id,
-                        study_id=prior.study_id,
-                        predicted_is_relevant=True,
-                    )
+            predictions.append(
+                Prediction(
+                    case_id=case.case_id,
+                    study_id=prior.study_id,
+                    predicted_is_relevant=is_relevant,
                 )
+            )
 
     return PredictionResponse(predictions=predictions)
