@@ -54,8 +54,16 @@ def health() -> dict[str, Any]:
     }
 
 
-@app.post("/predict", response_model=PredictionResponse)
-def predict(payload: PredictionRequest) -> PredictionResponse:
+@app.get("/")
+def root() -> dict[str, str]:
+    return {
+        "status": "ok",
+        "predict_endpoint": "/predict",
+        "health_endpoint": "/health",
+    }
+
+
+def _predict(payload: PredictionRequest) -> PredictionResponse:
     predictions: list[Prediction] = []
     prediction_metadata: list[tuple[str, str]] = []
     comparisons: list[StudyComparison] = []
@@ -96,3 +104,13 @@ def predict(payload: PredictionRequest) -> PredictionResponse:
         len(predictions),
     )
     return PredictionResponse(predictions=predictions)
+
+
+@app.post("/predict", response_model=PredictionResponse)
+def predict(payload: PredictionRequest) -> PredictionResponse:
+    return _predict(payload)
+
+
+@app.post("/predict/", response_model=PredictionResponse, include_in_schema=False)
+def predict_with_trailing_slash(payload: PredictionRequest) -> PredictionResponse:
+    return _predict(payload)
