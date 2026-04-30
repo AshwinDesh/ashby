@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.pipeline import Pipeline
@@ -23,6 +24,7 @@ RANDOM_STATE = 20260426
 DEFAULT_DECISION_THRESHOLD = 0.56
 ESTIMATOR_COUNT = 300
 MIN_SAMPLES_PER_LEAF = 8
+MODEL_WORKER_COUNT = 1
 
 
 def _load_training_payload(path: Path) -> dict[str, Any]:
@@ -76,7 +78,7 @@ def train_and_save(
                     max_features="sqrt",
                     class_weight="balanced_subsample",
                     random_state=RANDOM_STATE,
-                    n_jobs=-1,
+                    n_jobs=MODEL_WORKER_COUNT,
                 ),
             ),
         ]
@@ -91,6 +93,8 @@ def train_and_save(
         "training_rows": len(targets),
         "positive_rows": sum(targets),
         "random_state": RANDOM_STATE,
+        "model_worker_count": MODEL_WORKER_COUNT,
+        "sklearn_version": sklearn.__version__,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(serialized_model, output_path)

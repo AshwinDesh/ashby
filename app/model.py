@@ -6,11 +6,13 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import joblib
+import sklearn
 
 from app.features import extract_model_features
 
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "model.joblib"
+MODEL_WORKER_COUNT = 1
 
 
 @dataclass(frozen=True)
@@ -29,8 +31,30 @@ class RelevantPriorModel:
             )
 
         artifact: dict[str, Any] = joblib.load(model_path)
+        artifact_sklearn_version = artifact.get("sklearn_version")
+        if artifact_sklearn_version is not None and artifact_sklearn_version != sklearn.__version__:
+            raise RuntimeError(
+                "Model artifact was trained with scikit-learn "
+                f"{artifact_sklearn_version}, but runtime has {sklearn.__version__}. "
+                "Run `python3 -B app/train.py` from the active environment to regenerate it."
+            )
+
         self._estimator = artifact["estimator"]
         self._threshold = artifact["threshold"]
+        self.metadata = {
+            "name": artifact.get("name"),
+            "threshold": self._threshold,
+            "training_rows": artifact.get("training_rows"),
+            "positive_rows": artifact.get("positive_rows"),
+            "sklearn_version": artifact.get("sklearn_version"),
+            "model_worker_count": MODEL_WORKER_COUNT,
+        }
+        self._force_single_worker_estimator()
+
+    def _force_single_worker_estimator(self) -> None:
+        classifier = getattr(self._estimator, "named_steps", {}).get("classifier")
+        if classifier is not None and hasattr(classifier, "n_jobs"):
+            classifier.n_jobs = MODEL_WORKER_COUNT
 
     @staticmethod
     def _feature_row(comparison: StudyComparison) -> dict[str, Any]:

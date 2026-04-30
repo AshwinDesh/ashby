@@ -14,6 +14,104 @@
       "status": "active",
       "addedAt": 1777252441738,
       "scope": "file"
+    },
+    {
+      "filePath": ".synq/auto_adopt.json",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".synq/knowledge-tree/dependency-graph.json",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".synq/cache/semantic/latest-report.json",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/config.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/config.hephaestus.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/devops_infra.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/system_architect.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/implementer.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/pd_manager.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/researcher.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/qa_engineer.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/reviewer.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".codex/agents/scrum_master.toml",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
+    },
+    {
+      "filePath": ".claude/settings.local.json",
+      "baselineLine": 0,
+      "status": "active",
+      "addedAt": 1777265529077,
+      "scope": "file"
     }
   ]
 }

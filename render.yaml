@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: challenger-5494
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true

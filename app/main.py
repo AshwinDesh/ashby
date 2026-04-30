@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime
+from typing import Any
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from app.model import RelevantPriorModel, StudyComparison
+
+logger = logging.getLogger("relevant_priors")
 
 app = FastAPI(title="Relevant Priors API", version="1.0.0")
 model = RelevantPriorModel()
@@ -42,11 +46,26 @@ class PredictionResponse(BaseModel):
     predictions: list[Prediction]
 
 
+@app.get("/health")
+def health() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "model": model.metadata,
+    }
+
+
 @app.post("/predict", response_model=PredictionResponse)
 def predict(payload: PredictionRequest) -> PredictionResponse:
     predictions: list[Prediction] = []
     prediction_metadata: list[tuple[str, str]] = []
     comparisons: list[StudyComparison] = []
+    prior_count = sum(len(case.prior_studies) for case in payload.cases)
+    logger.info(
+        "prediction_request challenge_id=%s cases=%s priors=%s",
+        payload.challenge_id,
+        len(payload.cases),
+        prior_count,
+    )
 
     for case in payload.cases:
         for prior in case.prior_studies:
@@ -71,4 +90,9 @@ def predict(payload: PredictionRequest) -> PredictionResponse:
             )
         )
 
+    logger.info(
+        "prediction_response challenge_id=%s predictions=%s",
+        payload.challenge_id,
+        len(predictions),
+    )
     return PredictionResponse(predictions=predictions)

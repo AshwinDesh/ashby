@@ -18,6 +18,35 @@ uvicorn app.main:app --reload
 
 The API exposes `POST /predict`.
 
+For a production-style local run:
+
+```bash
+PORT=8000 uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+```
+
+Health check:
+
+```bash
+curl "http://127.0.0.1:8000/health"
+```
+
+## Deploy
+
+The app is deployable as either a Python web service or a Docker container. The saved model artifact at `models/model.joblib` must be included with the deployed code.
+
+Python web service command:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port "$PORT"
+```
+
+Docker:
+
+```bash
+docker build -t relevant-priors .
+docker run --rm -p 8000:8000 -e PORT=8000 relevant-priors
+```
+
 ## Request shape
 
 The endpoint accepts:

@@ -2,17 +2,21 @@
   "mode": "analysis",
   "status": "pass",
   "architectureStatus": "pass",
-  "generatedAt": 1777249314221,
+  "generatedAt": 1777489522393,
   "summary": {
-    "fileCount": 0,
-    "changedFileCount": 0,
+    "fileCount": 1,
+    "changedFileCount": 1,
     "conflictCount": 0,
     "cycleCount": 0
   },
   "report": {
-    "changedFiles": [],
+    "changedFiles": [
+      ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js"
+    ],
     "cycles": [],
-    "importGraph": {}
+    "importGraph": {
+      ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js": []
+    }
   },
   "conflicts": [],
   "conflictsByTask": {},
@@ -20,16 +24,46 @@
   "knowledgeTree": {
     "exportKind": "repo_map",
     "metadata": {
-      "folderCount": 0,
+      "folderCount": 1,
       "taskCount": 0,
-      "moduleCount": 0,
-      "indexedFileCount": 0
+      "moduleCount": 1,
+      "indexedFileCount": 1
     },
-    "tree": []
+    "tree": [
+      {
+        "id": "folder:.venv",
+        "kind": "folder",
+        "title": ".venv",
+        "children": [
+          {
+            "id": "module:.venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+            "kind": "module",
+            "title": ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+            "filePath": ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+            "taskIds": [],
+            "impactedTaskIds": [],
+            "conflictCount": 0,
+            "cycleMembership": false,
+            "architectureZone": ".venv",
+            "importDegree": 0,
+            "children": []
+          }
+        ]
+      }
+    ]
   },
   "graph": {
-    "nodes": [],
+    "nodes": [
+      {
+        "id": "module:.venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+        "kind": "module",
+        "label": ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+        "filePath": ".venv/lib/python3.10/site-packages/sklearn/utils/_repr_html/estimator.js",
+        "importDegree": 0,
+        "cycleMembership": false
+      }
+    ],
     "edges": [],
-    "generatedAt": 1777249314221
+    "generatedAt": 1777489522393
   }
 }
