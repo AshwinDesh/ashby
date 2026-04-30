@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from datetime import date
@@ -65,6 +66,7 @@ def train_and_save(
     *,
     training_data_path: Path = DEFAULT_TRAINING_DATA_PATH,
     output_path: Path = DEFAULT_MODEL_PATH,
+    threshold: float = DEFAULT_DECISION_THRESHOLD,
 ) -> None:
     features, targets = _build_training_rows(_load_training_payload(training_data_path))
     estimator = Pipeline(
@@ -88,7 +90,7 @@ def train_and_save(
     serialized_model = {
         "name": "random_forest_relevant_prior_v1",
         "estimator": estimator,
-        "threshold": DEFAULT_DECISION_THRESHOLD,
+        "threshold": threshold,
         "training_data": str(training_data_path),
         "training_rows": len(targets),
         "positive_rows": sum(targets),
@@ -101,7 +103,17 @@ def train_and_save(
     print(f"Saved random forest model artifact to {output_path}")
     print(f"Training rows: {len(targets)}")
     print(f"Positive rows: {sum(targets)}")
+    print(f"Decision threshold: {threshold}")
 
 
 if __name__ == "__main__":
-    train_and_save()
+    parser = argparse.ArgumentParser(description="Train and save the relevant-priors model artifact.")
+    parser.add_argument("--training-data", type=Path, default=DEFAULT_TRAINING_DATA_PATH)
+    parser.add_argument("--output-model", type=Path, default=DEFAULT_MODEL_PATH)
+    parser.add_argument("--threshold", type=float, default=DEFAULT_DECISION_THRESHOLD)
+    args = parser.parse_args()
+    train_and_save(
+        training_data_path=args.training_data,
+        output_path=args.output_model,
+        threshold=args.threshold,
+    )

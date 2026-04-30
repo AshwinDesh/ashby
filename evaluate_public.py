@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 from datetime import date
 from pathlib import Path
@@ -13,8 +14,12 @@ def load_eval_payload(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def generate_predictions(payload: dict[str, Any]) -> dict[tuple[str, str], bool]:
-    model = RelevantPriorModel()
+def generate_predictions(
+    payload: dict[str, Any],
+    *,
+    model_path: Path | None = None,
+) -> dict[tuple[str, str], bool]:
+    model = RelevantPriorModel() if model_path is None else RelevantPriorModel(model_path)
     predictions: dict[tuple[str, str], bool] = {}
     keys: list[tuple[str, str]] = []
     comparisons: list[StudyComparison] = []
@@ -40,8 +45,8 @@ def generate_predictions(payload: dict[str, Any]) -> dict[tuple[str, str], bool]
     return predictions
 
 
-def evaluate(payload: dict[str, Any]) -> dict[str, float | int]:
-    predictions = generate_predictions(payload)
+def evaluate(payload: dict[str, Any], *, model_path: Path | None = None) -> dict[str, float | int]:
+    predictions = generate_predictions(payload, model_path=model_path)
     truth = payload["truth"]
 
     total_cases = len(payload["cases"])
@@ -76,9 +81,13 @@ def evaluate(payload: dict[str, Any]) -> dict[str, float | int]:
 
 
 def main() -> None:
-    payload_path = Path("relevant_priors_public.json")
-    payload = load_eval_payload(payload_path)
-    metrics = evaluate(payload)
+    parser = argparse.ArgumentParser(description="Evaluate a labeled challenge-format payload.")
+    parser.add_argument("--payload", type=Path, default=Path("relevant_priors_public.json"))
+    parser.add_argument("--model", type=Path, default=None)
+    args = parser.parse_args()
+
+    payload = load_eval_payload(args.payload)
+    metrics = evaluate(payload, model_path=args.model)
 
     print(f"total cases: {metrics['total_cases']}")
     print(f"total priors: {metrics['total_priors']}")

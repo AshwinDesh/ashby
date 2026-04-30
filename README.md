@@ -10,6 +10,37 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Reproduce Training and Validation
+
+Train the deployment artifact:
+
+```bash
+python -B app/train.py \
+  --training-data relevant_priors_public.json \
+  --output-model models/model.joblib \
+  --threshold 0.65
+```
+
+Evaluate any labeled challenge-format payload:
+
+```bash
+python -B evaluate_public.py \
+  --payload relevant_priors_public.json \
+  --model models/model.joblib
+```
+
+Run case-level out-of-fold validation:
+
+```bash
+python -B analyze_oof_errors.py --folds 5 --threshold 0.65
+```
+
+Run feature tests:
+
+```bash
+python -B -m unittest discover -s tests
+```
+
 ## Run API
 
 ```bash
