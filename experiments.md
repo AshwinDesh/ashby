@@ -2,21 +2,21 @@
 
 ## Goal
 
-The API decides which prior exams should be shown while a radiologist reads the current exam. I optimized for returning one prediction per prior quickly and consistently, then used case-level validation to estimate whether features generalize to unseen patients/cases.
+The API decides which prior exams should be shown while a radiologist reads the current exam. I optimized for returning one prediction per prior quickly and consistently, then used patient-level validation to estimate whether features generalize to unseen patients.
 
 ## Data and Validation
 
 - Public labeled split: 996 cases, 27,614 previous examinations.
 - Final artifact is trained on `relevant_priors_public.json` because no other labeled training split is provided.
-- Model selection used grouped validation by `case_id` through `analyze_oof_errors.py`, so priors from the same case do not leak between train and validation folds.
-- `evaluate_public.py` is now a public labeled-eval command with explicit `--payload` and `--model` arguments; it is not treated as the primary estimate of hidden performance.
+- Model selection used grouped validation by `patient_id` through `analyze_oof_errors.py`, so cases from the same patient do not leak between train and validation folds.
+- `evaluate_public.py` is a public labeled sanity-check command with explicit `--payload` and `--model` arguments. Because the final artifact is trained on the public file, trained-on-public accuracy is intentionally not the headline validation metric.
 
 Reproduction commands:
 
 ```bash
-python -B app/train.py --training-data relevant_priors_public.json --output-model models/model.joblib --threshold 0.65
+python -B app/train.py --training-data relevant_priors_public.json --output-model models/model.joblib --threshold 0.62
 python -B evaluate_public.py --payload relevant_priors_public.json --model models/model.joblib
-python -B analyze_oof_errors.py --folds 5 --threshold 0.65
+python -B analyze_oof_errors.py --folds 5 --threshold 0.62 --group-by patient
 python -B -m unittest discover -s tests
 ```
 
@@ -26,9 +26,9 @@ python -B -m unittest discover -s tests
 |---|---|---:|---:|
 | Rule baseline | exact description, coarse modality, 5-year age rule | full public eval | 0.669697 |
 | Random forest v1 | date buckets, modality/body region, token overlap, laterality, contrast | grouped held-out estimate | about 0.9295 |
-| Random forest v1 | same as above | full public eval | 0.947563 |
-| Random forest v2 | v1 plus clinical text families and related-family features | grouped OOF, threshold 0.65 | 0.944774 |
-| Random forest v2 | same as above | full public eval | 0.957051 |
+| Random forest v2 | v1 plus clinical text families and related-family features | case-level OOF, threshold 0.65 | 0.944774 |
+| Random forest v2 | stricter token/phrase matching | patient-level OOF, threshold 0.62 | 0.939234 |
+| Random forest v2 | final artifact trained on public labels | trained-on-public sanity check | 0.956797 |
 
 The main improvement came from handling textually different but clinically related studies: mammography and breast ultrasound, cardiac stress/echo/coronary CT, PET/CT oncology follow-up, chest/ribs/thoracic spine relationships, and renal/abdomen/pelvis relationships.
 
@@ -40,7 +40,7 @@ The main improvement came from handling textually different but clinically relat
 - `class_weight=balanced_subsample`
 - `max_features=sqrt`
 - `n_jobs=1` to avoid process pressure in small hosted containers
-- decision threshold `0.65`
+- decision threshold `0.62`, selected from patient-level grouped validation
 
 Features include:
 
@@ -54,14 +54,14 @@ Features include:
 
 ## Error Slices
 
-Out-of-fold validation after clinical-family features:
+Patient-level out-of-fold validation after clinical-family features and stricter term matching:
 
-- accuracy: 0.944774
-- precision: 0.895761
-- recall: 0.868890
-- F1: 0.882121
-- false positives: 664
-- false negatives: 861
+- accuracy: 0.939234
+- precision: 0.877646
+- recall: 0.865083
+- F1: 0.871319
+- false positives: 792
+- false negatives: 886
 
 Remaining false positives cluster around:
 
@@ -86,8 +86,9 @@ In a production workflow, I would not only return a boolean. I would rank priors
 
 - Bulk inference over all priors in the request.
 - Compact engineered features instead of external services or one call per prior.
-- Grouped validation by case to reduce leakage.
+- Grouped validation by patient to reduce leakage from multiple cases belonging to the same patient.
 - Clinical text-family features for common radiology wording shifts.
+- Token/phrase boundary matching for feature terms, which reduces accidental substring collisions.
 - Pinned sklearn version and model metadata to avoid pickle incompatibility.
 
 ## What Failed

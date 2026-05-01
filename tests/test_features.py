@@ -66,6 +66,28 @@ class FeatureExtractionTests(unittest.TestCase):
         self.assertEqual(features.prior_body_region, "abdomen_pelvis")
         self.assertTrue(features.clinically_related_families)
 
+    def test_terms_do_not_match_inside_unrelated_words(self) -> None:
+        features = extract_features(
+            current_study_description="CT calcaneus without contrast",
+            current_study_date=date(2024, 1, 1),
+            prior_study_description="XR foot RT 3V",
+            prior_study_date=date(2023, 1, 1),
+        )
+
+        self.assertNotIn("cardiac_coronary", features.current_clinical_families)
+        self.assertNotIn("cardiac_coronary", features.prior_clinical_families)
+
+    def test_short_abbreviations_require_token_boundaries(self) -> None:
+        features = extract_features(
+            current_study_description="XR abdomen 2V AP and erect",
+            current_study_date=date(2024, 1, 1),
+            prior_study_description="MRI brain without contrast",
+            prior_study_date=date(2023, 1, 1),
+        )
+
+        self.assertNotIn("pet_oncology", features.current_clinical_families)
+        self.assertNotIn("pet_oncology", features.prior_clinical_families)
+
 
 if __name__ == "__main__":
     unittest.main()

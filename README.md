@@ -18,7 +18,7 @@ Train the deployment artifact:
 python -B app/train.py \
   --training-data relevant_priors_public.json \
   --output-model models/model.joblib \
-  --threshold 0.65
+  --threshold 0.62
 ```
 
 Evaluate any labeled challenge-format payload:
@@ -32,7 +32,7 @@ python -B evaluate_public.py \
 Run case-level out-of-fold validation:
 
 ```bash
-python -B analyze_oof_errors.py --folds 5 --threshold 0.65
+python -B analyze_oof_errors.py --folds 5 --threshold 0.62 --group-by patient
 ```
 
 Run feature tests:

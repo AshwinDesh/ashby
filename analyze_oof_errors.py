@@ -28,6 +28,7 @@ EXAMPLE_LIMIT = 12
 
 @dataclass(frozen=True)
 class StudyRow:
+    patient_id: str
     case_id: str
     study_id: str
     current_description: str
@@ -73,7 +74,11 @@ def _pattern_key(row: StudyRow) -> tuple[str, ...]:
     )
 
 
-def _build_rows(payload: dict[str, Any]) -> tuple[list[StudyRow], list[dict[str, Any]], np.ndarray, np.ndarray]:
+def _build_rows(
+    payload: dict[str, Any],
+    *,
+    group_by: str,
+) -> tuple[list[StudyRow], list[dict[str, Any]], np.ndarray, np.ndarray]:
     truth = {
         (row["case_id"], row["study_id"]): row["is_relevant_to_current"]
         for row in payload["truth"]
@@ -92,6 +97,7 @@ def _build_rows(payload: dict[str, Any]) -> tuple[list[StudyRow], list[dict[str,
             prior_date = date.fromisoformat(prior_study["study_date"])
             rows.append(
                 StudyRow(
+                    patient_id=case["patient_id"],
                     case_id=case["case_id"],
                     study_id=prior_study["study_id"],
                     current_description=current_study["study_description"],
@@ -110,7 +116,7 @@ def _build_rows(payload: dict[str, Any]) -> tuple[list[StudyRow], list[dict[str,
                 )
             )
             targets.append(int(expected))
-            groups.append(case["case_id"])
+            groups.append(case["patient_id"] if group_by == "patient" else case["case_id"])
 
     return rows, feature_rows, np.array(targets), np.array(groups)
 
@@ -154,8 +160,8 @@ def _print_examples(title: str, rows: list[StudyRow]) -> None:
         )
 
 
-def analyze(payload_path: Path, folds: int, threshold: float) -> None:
-    rows, feature_rows, targets, groups = _build_rows(_load_payload(payload_path))
+def analyze(payload_path: Path, folds: int, threshold: float, group_by: str) -> None:
+    rows, feature_rows, targets, groups = _build_rows(_load_payload(payload_path), group_by=group_by)
     probabilities = np.zeros(len(rows), dtype=float)
 
     for fold_index, (train_idx, test_idx) in enumerate(
@@ -184,6 +190,7 @@ def analyze(payload_path: Path, folds: int, threshold: float) -> None:
     ]
 
     print()
+    print(f"group_by: {group_by}")
     print(f"threshold: {threshold:.2f}")
     print(f"accuracy: {accuracy_score(targets, predictions):.6f}")
     print(f"precision: {precision:.6f}")
@@ -204,8 +211,9 @@ def main() -> None:
     parser.add_argument("--payload", type=Path, default=DEFAULT_PAYLOAD_PATH)
     parser.add_argument("--folds", type=int, default=DEFAULT_FOLDS)
     parser.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD)
+    parser.add_argument("--group-by", choices=("patient", "case"), default="patient")
     args = parser.parse_args()
-    analyze(args.payload, args.folds, args.threshold)
+    analyze(args.payload, args.folds, args.threshold, args.group_by)
 
 
 if __name__ == "__main__":

@@ -9,6 +9,8 @@ from typing import Any
 
 TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
+GROUP_TERMS = dict[str, tuple[str, ...]]
+
 MODALITY_PREFIXES = {
     "mri": ("mri", "mr "),
     "ct": ("ct", "cta"),
@@ -27,7 +29,17 @@ BODY_REGION_TERMS = {
     "neck_spine": ("neck", "cervical", "cervicl", "spine", "lumbar", "thoracic"),
     "chest_cardiac": ("chest", "lung", "cardiac", "heart", "coronary", "echo"),
     "breast": ("breast", "mam", "mammo", "mammography"),
-    "abdomen_pelvis": ("abdomen", "abdominal", "pelvis", "pelvic", "renal", "kidney", "liver"),
+    "abdomen_pelvis": (
+        "abdomen",
+        "abdominal",
+        "pelvis",
+        "pelvic",
+        "renal",
+        "kidney",
+        "kidneys",
+        "bladder",
+        "liver",
+    ),
     "upper_extremity": ("shoulder", "humerus", "elbow", "wrist", "hand", "finger"),
     "lower_extremity": ("hip", "knee", "ankle", "foot", "femur", "tibia"),
 }
@@ -163,6 +175,20 @@ def _tokens(description: str) -> set[str]:
     return set(TOKEN_PATTERN.findall(_normalize(description)))
 
 
+def _contains_phrase(normalized: str, phrase: str) -> bool:
+    return bool(re.search(rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])", normalized))
+
+
+def _has_term(normalized: str, tokens: set[str], term: str) -> bool:
+    if " " in term or "/" in term or "-" in term:
+        return _contains_phrase(normalized, term)
+    return term in tokens
+
+
+def _has_any_term(normalized: str, tokens: set[str], terms: tuple[str, ...]) -> bool:
+    return any(_has_term(normalized, tokens, term) for term in terms)
+
+
 def _modality(description: str) -> str:
     normalized = _normalize(description)
     for modality, prefixes in MODALITY_PREFIXES.items():
@@ -171,11 +197,11 @@ def _modality(description: str) -> str:
     return "other"
 
 
-def _first_matching_group(description: str, groups: dict[str, tuple[str, ...]], default: str) -> str:
+def _first_matching_group(description: str, groups: GROUP_TERMS, default: str) -> str:
     normalized = _normalize(description)
     tokens = _tokens(normalized)
     for group_name, terms in groups.items():
-        if any(term in tokens or term in normalized for term in terms):
+        if _has_any_term(normalized, tokens, terms):
             return group_name
     return default
 
@@ -197,7 +223,7 @@ def _clinical_families(description: str) -> tuple[str, ...]:
     tokens = _tokens(normalized)
     families: list[str] = []
     for family_name, terms in CLINICAL_FAMILY_TERMS.items():
-        if any(term in tokens or term in normalized for term in terms):
+        if _has_any_term(normalized, tokens, terms):
             families.append(family_name)
     return tuple(families)
 
