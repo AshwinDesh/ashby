@@ -8,8 +8,9 @@ The API decides which prior exams should be shown while a radiologist reads the 
 
 - Public labeled split: 996 cases, 27,614 previous examinations.
 - Final artifact is trained on `relevant_priors_public.json` because no other labeled training split is provided.
-- Model selection used grouped validation by `patient_id` through `analyze_oof_errors.py`, so cases from the same patient do not leak between train and validation folds.
+- Model selection used grouped validation by `patient_id` through `analyze_oof_errors.py`, so cases from the same patient do not leak between train and validation folds. The script now prints per-fold metrics plus mean/std summaries.
 - `evaluate_public.py` is a public labeled sanity-check command with explicit `--payload` and `--model` arguments. Because the final artifact is trained on the public file, trained-on-public accuracy is intentionally not the headline validation metric.
+- Taxonomy terms are isolated in `app/taxonomy.py`; feature extraction applies token/phrase-boundary matching to reduce accidental substring collisions.
 
 Reproduction commands:
 
@@ -62,6 +63,8 @@ Patient-level out-of-fold validation after clinical-family features and stricter
 - F1: 0.871319
 - false positives: 792
 - false negatives: 886
+- fold accuracy mean/std: 0.939233 +/- 0.011531
+- fold F1 mean/std: 0.865134 +/- 0.036823
 
 Remaining false positives cluster around:
 
@@ -89,6 +92,7 @@ In a production workflow, I would not only return a boolean. I would rank priors
 - Grouped validation by patient to reduce leakage from multiple cases belonging to the same patient.
 - Clinical text-family features for common radiology wording shifts.
 - Token/phrase boundary matching for feature terms, which reduces accidental substring collisions.
+- Externalizing taxonomy to a dedicated module, which makes the hard-coded term inventory easier to audit and extend.
 - Pinned sklearn version and model metadata to avoid pickle incompatibility.
 
 ## What Failed

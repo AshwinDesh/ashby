@@ -3,3 +3,4 @@ uvicorn==0.46.0
 pydantic==2.13.3
 joblib==1.5.3
 scikit-learn==1.7.2
+httpx==0.28.1

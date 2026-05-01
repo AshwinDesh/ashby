@@ -41,6 +41,8 @@ Run feature tests:
 python -B -m unittest discover -s tests
 ```
 
+The term inventories used by feature extraction live in `app/taxonomy.py`. Keep additions there and prefer token/phrase-boundary terms over broad substrings.
+
 ## Run API
 
 ```bash

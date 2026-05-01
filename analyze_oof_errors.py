@@ -163,6 +163,7 @@ def _print_examples(title: str, rows: list[StudyRow]) -> None:
 def analyze(payload_path: Path, folds: int, threshold: float, group_by: str) -> None:
     rows, feature_rows, targets, groups = _build_rows(_load_payload(payload_path), group_by=group_by)
     probabilities = np.zeros(len(rows), dtype=float)
+    fold_metrics: list[tuple[float, float, float, float]] = []
 
     for fold_index, (train_idx, test_idx) in enumerate(
         GroupKFold(n_splits=folds).split(feature_rows, targets, groups),
@@ -171,7 +172,20 @@ def analyze(payload_path: Path, folds: int, threshold: float, group_by: str) -> 
         model = _make_model()
         model.fit([feature_rows[i] for i in train_idx], targets[train_idx])
         probabilities[test_idx] = model.predict_proba([feature_rows[i] for i in test_idx])[:, 1]
-        print(f"fold {fold_index}: train={len(train_idx)} test={len(test_idx)}")
+        fold_predictions = probabilities[test_idx] >= threshold
+        fold_precision, fold_recall, fold_f1, _ = precision_recall_fscore_support(
+            targets[test_idx],
+            fold_predictions,
+            average="binary",
+            zero_division=0,
+        )
+        fold_accuracy = accuracy_score(targets[test_idx], fold_predictions)
+        fold_metrics.append((fold_accuracy, fold_precision, fold_recall, fold_f1))
+        print(
+            f"fold {fold_index}: train={len(train_idx)} test={len(test_idx)} "
+            f"accuracy={fold_accuracy:.6f} precision={fold_precision:.6f} "
+            f"recall={fold_recall:.6f} f1={fold_f1:.6f}"
+        )
 
     predictions = probabilities >= threshold
     precision, recall, f1, _ = precision_recall_fscore_support(
@@ -199,6 +213,15 @@ def analyze(payload_path: Path, folds: int, threshold: float, group_by: str) -> 
     print(f"auc: {roc_auc_score(targets, probabilities):.6f}")
     print(f"false positives: {len(false_positives)}")
     print(f"false negatives: {len(false_negatives)}")
+    fold_array = np.array(fold_metrics)
+    print(
+        "fold_accuracy_mean_std: "
+        f"{fold_array[:, 0].mean():.6f} +/- {fold_array[:, 0].std(ddof=1):.6f}"
+    )
+    print(
+        "fold_f1_mean_std: "
+        f"{fold_array[:, 3].mean():.6f} +/- {fold_array[:, 3].std(ddof=1):.6f}"
+    )
 
     _print_patterns("Top out-of-fold false positive patterns:", false_positives)
     _print_patterns("Top out-of-fold false negative patterns:", false_negatives)

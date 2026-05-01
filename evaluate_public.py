@@ -53,6 +53,7 @@ def evaluate(payload: dict[str, Any], *, model_path: Path | None = None) -> dict
     total_priors = sum(len(case["prior_studies"]) for case in payload["cases"])
 
     correct = 0
+    incorrect = 0
     missing = 0
 
     for row in truth:
@@ -62,12 +63,14 @@ def evaluate(payload: dict[str, Any], *, model_path: Path | None = None) -> dict
 
         if predicted is None:
             missing += 1
+            incorrect += 1
             continue
 
         if predicted == expected:
             correct += 1
+        else:
+            incorrect += 1
 
-    incorrect = len(truth) - correct
     accuracy = correct / len(truth) if truth else 0.0
 
     return {
